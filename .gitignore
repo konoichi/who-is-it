@@ -1,0 +1,53 @@
+# Bytecode & Cache
+__pycache__/
+*.py[cod]
+*.so
+*.pyd
+*.pyo
+
+# Virtuelle Umgebung
+.venv/
+env/
+venv/
+
+# IDEs & Editor-Settings
+.vscode/
+.idea/
+*.swp
+
+# OS-spezifisches Zeug
+.DS_Store
+Thumbs.db
+
+# Logs & Temp-Dateien
+*.log
+*.tmp
+*.bak
+*.old
+
+# Test-Ausgaben
+coverage/
+htmlcov/
+.tox/
+.pytest_cache/
+
+# Gradio Launch Files
+*.gradio
+
+# Persönliche Daten / Beispielbilder / Registrierte Bilder
+known_faces/
+temp/
+samples/
+*.png
+*.jpg
+*.jpeg
+
+# Modelle oder große Binärdaten (falls später relevant)
+*.pt
+*.pth
+*.onnx
+*.npy
+
+# Sonstiges
+*.sqlite3
+*.db
