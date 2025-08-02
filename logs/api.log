@@ -1,0 +1,45 @@
+2025-08-02 13:30:54.884 | INFO     | api:<module>:41 - ♻️ Embeddings aus Bildern neu erzeugt
+2025-08-02 13:31:46.893 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 13:31:50.933 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 13:32:14.632 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 13:36:36.492 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 13:45:10.968 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 13:45:24.345 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 13:57:09.463 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 13:57:21.304 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 14:03:03.581 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 14:03:25.487 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 14:07:49.555 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 14:14:55.481 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 14:38:59.889 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 14:39:06.469 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:04:30.031 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:12:10.791 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:12:32.286 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:20:37.385 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:20:43.201 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:22:36.906 | INFO     | api:detect_faces:84 - /detect: file, Faces: 2
+2025-08-02 15:22:43.077 | INFO     | api:identify_faces:114 - /identify: file, Matches: ['unknown', 'unknown']
+2025-08-02 15:22:45.370 | INFO     | api:detect_faces:84 - /detect: file, Faces: 2
+2025-08-02 15:23:16.406 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:29:27.303 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:29:57.251 | INFO     | api:detect_faces:84 - /detect: file, Faces: 2
+2025-08-02 15:36:54.335 | INFO     | api:detect_faces:84 - /detect: file, Faces: 1
+2025-08-02 15:42:13.339 | INFO     | api:detect_faces:84 - /detect: file, Faces: 1
+2025-08-02 15:42:39.113 | INFO     | api:detect_faces:84 - /detect: file, Faces: 1
+2025-08-02 15:45:38.970 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:45:49.901 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:46:16.665 | INFO     | api:detect_faces:84 - /detect: file, Faces: 1
+2025-08-02 15:47:43.285 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:48:44.672 | INFO     | api:detect_faces:84 - /detect: file, Faces: 1
+2025-08-02 15:55:52.087 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:56:10.554 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:56:21.368 | INFO     | api:detect_faces:84 - /detect: file, Faces: 2
+2025-08-02 15:56:39.872 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:57:15.397 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 15:57:28.577 | INFO     | api:detect_faces:84 - /detect: file, Faces: 2
+2025-08-02 16:16:16.214 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 16:17:59.442 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 16:19:53.643 | INFO     | api:detect_faces:84 - /detect: file, Faces: 2
+2025-08-02 16:31:11.847 | INFO     | api:<module>:36 - ✅ Embeddings aus Cache geladen
+2025-08-02 16:42:43.958 | INFO     | api:detect_faces:84 - /detect: file, Faces: 2

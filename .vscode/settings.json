@@ -1,0 +1,14 @@
+{
+  // .vscode/settings.json
+  "python.venvPath": "",  // Deaktiviert automatische venv-Erkennung
+  "python.defaultInterpreterPath": "",  // Kein Autoload
+  "python.formatting.provider": "black",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.linting.mypyEnabled": false,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  }
+}
+
