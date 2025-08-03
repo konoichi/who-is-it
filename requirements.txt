@@ -4,4 +4,3 @@ face_recognition
 Pillow
 numpy
 gradio
-loguru

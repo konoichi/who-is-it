@@ -1,26 +1,35 @@
+# CODE-ID: api_v2.0
 """
 Modulname: api.py
-Version: v1.5
-Beschreibung: FastAPI-Backend für Gesichtserkennung mit Datei-Persistenz und Personenverwaltung
+Version: v2.0
+Beschreibung: Überarbeitetes FastAPI-Backend für Gesichtserkennung.
 Autor: AbbyBot
-Erstellt am: 2025-08-02
+Erstellt am: 2025-08-03
 Lizenz: MIT
 """
-
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from faces_utils import extract_faces, save_image_for_person, get_face_encodings, load_known_faces, identify_face, delete_person, list_registered_persons
 import uvicorn
 import logging
-from pathlib import Path
+from typing import List
+
+# Importiere unsere neuen Handler-Funktionen
+from face_handler import (
+    image_bytes_to_array,
+    extract_face_locations,
+    add_image_to_person,
+    identify_faces_in_image,
+    delete_person_data,
+    list_persons,
+    load_and_cache_known_faces
+)
 
 # Logging konfigurieren
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)8s | %(message)s")
 log = logging.getLogger("api")
 
 # App initialisieren
-app = FastAPI()
+app = FastAPI(title="Who-Is-It API", version="2.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,48 +37,74 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Embeddings-Cache laden
-load_cached_embeddings()
+@app.on_event("startup")
+def on_startup():
+    """Lädt beim Start der API alle bekannten Gesichter in den Cache."""
+    log.info("Server startet... Lade bekannte Gesichter.")
+    load_and_cache_known_faces()
 
-@app.post("/detect")
+@app.post("/detect", summary="Erkennt Gesichter in einem Bild")
 async def detect(file: UploadFile = File(...)):
+    """
+    Lädt ein Bild hoch und gibt die Positionen der erkannten Gesichter zurück.
+    """
     image_bytes = await file.read()
-    faces = faces = extract_faces(image)
-    log.info(f"/detect: file, Faces: {len(faces)}")
-return {"faces": faces}
+    image_array = image_bytes_to_array(image_bytes)
+    faces = extract_face_locations(image_array)
+    log.info(f"/detect: {len(faces)} Gesicht(er) in {file.filename} gefunden.")
+    return {"faces": faces}
 
-@app.post("/register/{name}")
+@app.post("/register/{name}", summary="Registriert ein Bild für eine Person")
 async def register(name: str, file: UploadFile = File(...)):
-    image_bytes = await file.read()
-    result = register_new_person(name, image_bytes)
-    return {"result": result}
-
-@app.post("/register_add/{name}")
-async def register_add(name: str, file: UploadFile = File(...)):
+    """
+    Speichert ein Bild für eine neue oder existierende Person.
+    """
+    if not name.strip():
+        raise HTTPException(status_code=400, detail="Name darf nicht leer sein.")
+    
     image_bytes = await file.read()
     result = add_image_to_person(name, image_bytes)
+    log.info(f"/register: {result}")
+    
+    if "Kein Gesicht" in result:
+        raise HTTPException(status_code=400, detail=result)
+        
     return {"result": result}
 
-@app.post("/identify")
+@app.post("/identify", summary="Identifiziert Personen in einem Bild")
 async def identify(file: UploadFile = File(...)):
+    """
+    Gleicht die Gesichter in einem Bild mit der Datenbank ab.
+    """
     image_bytes = await file.read()
     results = identify_faces_in_image(image_bytes)
+    log.info(f"/identify: {len(results)} Ergebnis(se) für {file.filename} gefunden.")
     return {"results": results}
 
-@app.delete("/person/{name}")
+@app.delete("/person/{name}", summary="Löscht eine Person")
 async def remove_person(name: str):
-    success = delete_person(name)
-    return JSONResponse(status_code=200 if success else 404, content={"deleted": success})
+    """
+    Löscht eine Person und alle ihre Bilder aus der Datenbank.
+    """
+    success = delete_person_data(name)
+    if not success:
+        log.warning(f"Löschen von '{name}' fehlgeschlagen. Person nicht gefunden.")
+        raise HTTPException(status_code=404, detail="Person nicht gefunden.")
+    
+    log.info(f"Person '{name}' wurde gelöscht.")
+    return {"deleted": True, "name": name}
 
-@app.delete("/person/{name}/{filename}")
-async def remove_image(name: str, filename: str):
-    success = delete_image_for_person(name, filename)
-    return JSONResponse(status_code=200 if success else 404, content={"deleted": success})
+@app.get("/persons", summary="Listet alle registrierten Personen auf", response_model=List[str])
+async def get_persons():
+    """
+    Gibt eine Liste aller Personen zurück, die in der Datenbank registriert sind.
+    """
+    return list_persons()
 
-@app.get("/person/{name}")
-async def list_person_images(name: str):
-    files = list_images_for_person(name)
-    return {"images": files}
+@app.get("/healthz", summary="Health Check")
+async def health_check():
+    """Einfacher Endpunkt um zu prüfen, ob die API läuft."""
+    return {"status": "ok"}
 
 if __name__ == "__main__":
     uvicorn.run("api:app", host="0.0.0.0", port=8001, reload=True)
