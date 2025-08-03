@@ -3,7 +3,7 @@
 Modulname: gradio_ui.py
 Version: v3.1
 Beschreibung: Kompatibilitäts-Fix. Ersetzt gr.Box durch gr.Group für ältere Gradio-Versionen.
-Autor: AbbyBot
+Autor: kono
 Erstellt am: 2025-08-03
 Lizenz: MIT
 """

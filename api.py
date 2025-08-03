@@ -1,9 +1,10 @@
-# CODE-ID: api_v2.0
+# CODE-ID: api_v2.5
 """
 Modulname: api.py
-Version: v2.0
-Beschreibung: Überarbeitetes FastAPI-Backend für Gesichtserkennung.
-Autor: AbbyBot
+Version: v2.5
+Beschreibung: Stellt die Konsistenz über alle Endpunkte sicher. Kein Endpunkt
+             gibt mehr eine leere Liste zurück.
+Autor: kono
 Erstellt am: 2025-08-03
 Lizenz: MIT
 """
@@ -11,9 +12,9 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import logging
-from typing import List
+from typing import List, Dict
 
-# Importiere unsere neuen Handler-Funktionen
+# Importiere unsere Handler-Funktionen
 from face_handler import (
     image_bytes_to_array,
     extract_face_locations,
@@ -29,7 +30,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)8s | %
 log = logging.getLogger("api")
 
 # App initialisieren
-app = FastAPI(title="Who-Is-It API", version="2.0")
+app = FastAPI(title="Who-Is-It API", version="2.5")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -47,11 +48,16 @@ def on_startup():
 async def detect(file: UploadFile = File(...)):
     """
     Lädt ein Bild hoch und gibt die Positionen der erkannten Gesichter zurück.
+    Wenn kein Gesicht gefunden wird, gibt es eine explizite Nachricht zurück.
     """
     image_bytes = await file.read()
     image_array = image_bytes_to_array(image_bytes)
     faces = extract_face_locations(image_array)
     log.info(f"/detect: {len(faces)} Gesicht(er) in {file.filename} gefunden.")
+
+    if not faces:
+        return {"faces": "none"}
+        
     return {"faces": faces}
 
 @app.post("/register/{name}", summary="Registriert ein Bild für eine Person")
@@ -75,10 +81,15 @@ async def register(name: str, file: UploadFile = File(...)):
 async def identify(file: UploadFile = File(...)):
     """
     Gleicht die Gesichter in einem Bild mit der Datenbank ab.
+    Wenn kein Gesicht gefunden wird, gibt es eine explizite Nachricht zurück.
     """
     image_bytes = await file.read()
     results = identify_faces_in_image(image_bytes)
     log.info(f"/identify: {len(results)} Ergebnis(se) für {file.filename} gefunden.")
+
+    if not results:
+        return {"results": "none"}
+
     return {"results": results}
 
 @app.delete("/person/{name}", summary="Löscht eine Person")
@@ -94,12 +105,17 @@ async def remove_person(name: str):
     log.info(f"Person '{name}' wurde gelöscht.")
     return {"deleted": True, "name": name}
 
-@app.get("/persons", summary="Listet alle registrierten Personen auf", response_model=List[str])
+@app.get("/persons", summary="Listet alle registrierten Personen auf", response_model=Dict)
 async def get_persons():
     """
     Gibt eine Liste aller Personen zurück, die in der Datenbank registriert sind.
+    Wenn keine Personen registriert sind, gibt es eine explizite Nachricht zurück.
     """
-    return list_persons()
+    persons = list_persons()
+    if not persons:
+        return {"persons": "none"}
+    
+    return {"persons": persons}
 
 @app.get("/healthz", summary="Health Check")
 async def health_check():

@@ -1,25 +1,32 @@
-# Gesichtserkennung MVP (v1.1)
+# 🧠 Who-Is-It v3.1 - Der smarte Workflow
 
 ## ✨ Ziel
 
-Dieses Projekt bietet eine einfache, lokal gehostete Gesichtserkennung mit zwei Frontends:
-
-- **FastAPI** für automatisierte Zugriffe / API-Nutzer
-- **Gradio** für schnelle Tests per Webinterface
-
-Läuft auch ohne GPU. Ideal für Homelabs.
+Dieses Projekt ist ein lokal gehostetes Gesichtserkennungs-Tool mit einem intelligenten, kontextbasierten Workflow. Anstatt nur einzelne Befehle auszuführen, analysiert das System ein Bild und schlägt basierend auf dem Ergebnis die logischen nächsten Schritte vor. Es dient als smarter Assistent für die Verwaltung einer Gesichtsdatenbank.
 
 ---
 
 ## 🔧 Installation
 
+### 1. Erstelle eine virtuelle Umgebung
+
 ```bash
 python3 -m venv .venv
+```
+
+### 2. Aktiviere die Umgebung
+
+```bash
 source .venv/bin/activate
+```
+
+### 3. Installiere die Abhängigkeiten
+
+```bash
 pip install -r requirements.txt
 ```
 
-### requirements.txt
+**requirements.txt:**
 
 ```
 fastapi
@@ -28,68 +35,78 @@ face_recognition
 Pillow
 numpy
 gradio
-loguru
 ```
 
 ---
 
 ## 🚀 Starten
 
-### FastAPI (API)
+Das Projekt wird mit einem einzigen Skript gestartet:
 
 ```bash
-uvicorn api:app --reload
+./runall.sh
 ```
 
-Läuft auf: [http://localhost:8000](http://localhost:8000)
+Das Skript startet:
 
-Dokumentation: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **FastAPI (Backend)**: [http://localhost:8001](http://localhost:8001)
+- **Gradio (Frontend)**: [http://localhost:7001](http://localhost:7001)
 
-### Gradio (UI)
-
-```bash
-python gradio_ui.py
-```
-
-Läuft auf: [http://localhost:7860](http://localhost:7860)
+Zum Beenden einfach `Strg+C` im Terminal drücken.
 
 ---
 
-## 📁 API-Endpunkte
+## 📁 Dateistruktur & Logik
 
-### `POST /detect`
+- `api.py` – Das Herzstück der Logik. Eine FastAPI-App, die alle Anfragen verarbeitet.
 
-- Upload eines Bildes (multipart/form-data)
-- Gibt erkannte Gesichter als JSON-Koordinaten zurück
+- `gradio_ui.py` – Das Interface. Smartes Gradio-UI, das auf Analyseergebnisse reagiert.
 
-### `GET /healthz`
+- `face_handler.py` – Das Gehirn für alle Gesichtsoperationen:
 
-- Check ob der Dienst läuft
+  - Laden und Cachen von Embeddings
+  - Hinzufügen neuer Personen/Bilder
+  - Duplikatschutz via Hashvergleich
+  - Identifikation in neuen Bildern
 
-### `GET /version`
+- `known_faces/` – Der Datenspeicher
 
-- Gibt Version der API zurück
+  - `known_faces/{person_name}/` – Ordner pro Person
+
+    - `*.png` – Zugehörige Bilder
+    - `hashes.json` – Bild-Hashes zur Duplikatsprüfung
+
+---
+
+## 💡 Workflow
+
+1. **Vorbereitung:** Mindestens ein Bild pro Person in `known_faces/{Name}/` ablegen
+2. **Start:** `./runall.sh` ausführen ✔ Meldung: Personen wurden geladen
+3. **UI öffnen:** [http://localhost:7001](http://localhost:7001)
+4. **Bild hochladen:** Mit Gesicht(er)
+5. **Analyse starten:** Klick auf 🔍 _Analysieren!_
+6. **Kontext-Aktion:**
+
+   - Wird **eine bekannte Person erkannt**, erscheint: „Dieses Bild zur Sammlung hinzufügen“
+   - Wird **ein unbekanntes Gesicht erkannt**, erscheint: Namensfeld + „Diese Person registrieren“
+
+---
+
+## 🌐 API-Endpunkte (v2.1)
+
+Swagger UI: [http://localhost:8001/docs](http://localhost:8001/docs)
+
+| Methode | Pfad               | Beschreibung                                               |
+| ------- | ------------------ | ---------------------------------------------------------- |
+| POST    | `/detect`          | Findet Gesichter im Bild, gibt Box-Koordinaten zurück      |
+| POST    | `/identify`        | Erkennt bekannte Gesichter im Bild                         |
+| POST    | `/register/{name}` | Bild einer (neuen) Person hinzufügen, mit Duplikatsprüfung |
+| GET     | `/persons`         | Gibt Liste aller bekannten Personen zurück                 |
+| DELETE  | `/person/{name}`   | Löscht eine Person inkl. aller Bilder                      |
+| GET     | `/healthz`         | Health-Check                                               |
 
 ---
 
 ## ⚖️ Lizenz
 
-MIT
-
----
-
-## ⚠️ Hinweise
-
-- Ohne GPU ist das Ganze nicht rasend schnell, aber stabil
-- DSGVO: Keine Speicherung der Bilder
-- Logs findest du unter: `logs/api.log`
-
----
-
-## 🌐 Nächste Ausbaustufen (optional)
-
-- Gesichtsvergleich / Identifikation
-- Datenbank mit erkannten Personen
-- Authentifizierung / Benutzerverwaltung
-- Kamera-Feed Anbindung (z. B. RTSP)
-- Dockerisierung
+MIT License

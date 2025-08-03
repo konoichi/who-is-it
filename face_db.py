@@ -2,7 +2,7 @@
 Modulname: face_db.py
 Version: v1.0
 Beschreibung: Lädt bekannte Gesichter aus known_faces/-Ordner
-Autor: AbbyBot
+Autor: kono
 Erstellt am: 2025-08-02
 Lizenz: MIT
 """
