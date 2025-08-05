@@ -1,36 +1,32 @@
-# CODE-ID: api_v2.5
+# CODE-ID: api_v2.8
 """
 Modulname: api.py
-Version: v2.5
-Beschreibung: Stellt die Konsistenz über alle Endpunkte sicher. Kein Endpunkt
-             gibt mehr eine leere Liste zurück.
+Version: v2.8
+Beschreibung: Ersetzt den /register-Endpunkt durch einen neuen /learn-Endpunkt,
+             der das gezielte Lernen einzelner Gesichter ermöglicht.
 Autor: kono
 Erstellt am: 2025-08-03
 Lizenz: MIT
 """
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import logging
+import json
 from typing import List, Dict
 
-# Importiere unsere Handler-Funktionen
 from face_handler import (
-    image_bytes_to_array,
-    extract_face_locations,
-    add_image_to_person,
     identify_faces_in_image,
     delete_person_data,
     list_persons,
-    load_and_cache_known_faces
+    load_and_cache_known_faces,
+    learn_face
 )
 
-# Logging konfigurieren
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)8s | %(message)s")
 log = logging.getLogger("api")
 
-# App initialisieren
-app = FastAPI(title="Who-Is-It API", version="2.5")
+app = FastAPI(title="Who-Is-It API", version="2.8")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -40,86 +36,67 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup():
-    """Lädt beim Start der API alle bekannten Gesichter in den Cache."""
     log.info("Server startet... Lade bekannte Gesichter.")
     load_and_cache_known_faces()
-
-@app.post("/detect", summary="Erkennt Gesichter in einem Bild")
-async def detect(file: UploadFile = File(...)):
-    """
-    Lädt ein Bild hoch und gibt die Positionen der erkannten Gesichter zurück.
-    Wenn kein Gesicht gefunden wird, gibt es eine explizite Nachricht zurück.
-    """
-    image_bytes = await file.read()
-    image_array = image_bytes_to_array(image_bytes)
-    faces = extract_face_locations(image_array)
-    log.info(f"/detect: {len(faces)} Gesicht(er) in {file.filename} gefunden.")
-
-    if not faces:
-        return {"faces": "none"}
-        
-    return {"faces": faces}
-
-@app.post("/register/{name}", summary="Registriert ein Bild für eine Person")
-async def register(name: str, file: UploadFile = File(...)):
-    """
-    Speichert ein Bild für eine neue oder existierende Person.
-    """
-    if not name.strip():
-        raise HTTPException(status_code=400, detail="Name darf nicht leer sein.")
-    
-    image_bytes = await file.read()
-    result = add_image_to_person(name, image_bytes)
-    log.info(f"/register: {result}")
-    
-    if "Kein Gesicht" in result:
-        raise HTTPException(status_code=400, detail=result)
-        
-    return {"result": result}
 
 @app.post("/identify", summary="Identifiziert Personen in einem Bild")
 async def identify(file: UploadFile = File(...)):
     """
     Gleicht die Gesichter in einem Bild mit der Datenbank ab.
-    Wenn kein Gesicht gefunden wird, gibt es eine explizite Nachricht zurück.
+    Gibt für jedes Gesicht Name, Box und Encoding zurück.
     """
     image_bytes = await file.read()
     results = identify_faces_in_image(image_bytes)
     log.info(f"/identify: {len(results)} Ergebnis(se) für {file.filename} gefunden.")
-
     if not results:
         return {"results": "none"}
-
     return {"results": results}
+
+@app.post("/learn", summary="Lernt ein spezifisches Gesicht aus einem Bild")
+async def learn(
+    name: str = Form(...),
+    box_json: str = Form(...),
+    encoding_json: str = Form(...),
+    file: UploadFile = File(...)
+):
+    """
+    Nimmt die Daten eines Gesichts (Name, Box, Encoding) und das Originalbild,
+    um dieses Gesicht gezielt zu lernen.
+    """
+    try:
+        box = json.loads(box_json)
+        encoding = json.loads(encoding_json)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Ungültiges JSON für Box oder Encoding.")
+
+    image_bytes = await file.read()
+    result = learn_face(name, encoding, image_bytes, box)
+    
+    log.info(f"/learn: {result}")
+    if result.startswith("DUPLICATE"):
+        raise HTTPException(status_code=409, detail=result)
+
+    return {"result": result}
+
 
 @app.delete("/person/{name}", summary="Löscht eine Person")
 async def remove_person(name: str):
-    """
-    Löscht eine Person und alle ihre Bilder aus der Datenbank.
-    """
     success = delete_person_data(name)
     if not success:
         log.warning(f"Löschen von '{name}' fehlgeschlagen. Person nicht gefunden.")
         raise HTTPException(status_code=404, detail="Person nicht gefunden.")
-    
     log.info(f"Person '{name}' wurde gelöscht.")
     return {"deleted": True, "name": name}
 
-@app.get("/persons", summary="Listet alle registrierten Personen auf", response_model=Dict)
+@app.get("/persons", summary="Listet alle registrierten Personen auf")
 async def get_persons():
-    """
-    Gibt eine Liste aller Personen zurück, die in der Datenbank registriert sind.
-    Wenn keine Personen registriert sind, gibt es eine explizite Nachricht zurück.
-    """
     persons = list_persons()
     if not persons:
         return {"persons": "none"}
-    
     return {"persons": persons}
 
 @app.get("/healthz", summary="Health Check")
 async def health_check():
-    """Einfacher Endpunkt um zu prüfen, ob die API läuft."""
     return {"status": "ok"}
 
 if __name__ == "__main__":

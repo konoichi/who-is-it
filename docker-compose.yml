@@ -1,0 +1,33 @@
+# CODE-ID: docker-compose_prod_v1
+#
+# Masterplan für den Einsatz auf dem Produktionsserver.
+# Diese Datei baut keine Images, sondern zieht sie aus der konfigurierten Registry.
+
+version: "3.8"
+
+services:
+  # Der API-Dienst (FastAPI)
+  api:
+    # Zieht das fertige Image aus der Registry.
+    # Die Variablen werden aus einer .env-Datei oder der Shell-Umgebung geladen.
+    image: ${GITEA_REGISTRY_URL}/${GITEA_USER}/${IMAGE_NAME}:latest
+    command: uvicorn api:app --host 0.0.0.0 --port 8001
+    ports:
+      # Leitet den Port nur auf dem Host-Netzwerk weiter, nicht öffentlich.
+      # Dein Nginx Proxy Manager greift darauf zu.
+      - "127.0.0.1:8001:8001"
+    volumes:
+      # Verbindet den lokalen known_faces-Ordner mit dem im Container.
+      - ./known_faces:/app/known_faces
+    restart: unless-stopped
+
+  # Der UI-Dienst (Gradio)
+  ui:
+    # Nutzt dasselbe fertige Image.
+    image: ${GITEA_REGISTRY_URL}/${GITEA_USER}/${IMAGE_NAME}:latest
+    command: python gradio_ui.py
+    ports:
+      - "127.0.0.1:7001:7001"
+    depends_on:
+      - api # Stellt sicher, dass die API vor der UI gestartet wird
+    restart: unless-stopped
